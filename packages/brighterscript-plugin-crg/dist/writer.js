@@ -147,6 +147,12 @@ class GraphWriter {
         this.pendingEdges = [];
         this.dirtyFilePaths.clear();
     }
+    queryAll() {
+        return {
+            nodes: this.db.prepare('SELECT * FROM nodes ORDER BY file_path, line_start').all(),
+            edges: this.db.prepare('SELECT * FROM edges ORDER BY file_path, line').all(),
+        };
+    }
     close() {
         this.db.close();
     }

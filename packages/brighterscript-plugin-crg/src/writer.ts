@@ -148,6 +148,13 @@ export class GraphWriter {
     this.dirtyFilePaths.clear();
   }
 
+  queryAll(): { nodes: unknown[]; edges: unknown[] } {
+    return {
+      nodes: this.db.prepare('SELECT * FROM nodes ORDER BY file_path, line_start').all(),
+      edges: this.db.prepare('SELECT * FROM edges ORDER BY file_path, line').all(),
+    };
+  }
+
   close(): void {
     this.db.close();
   }
