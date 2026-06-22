@@ -2,19 +2,19 @@
   "name": "roku-graphify",
   "version": "0.1.0",
   "description": "BrightScript code graph analysis tool powered by tree-sitter",
-  "main": "src/index.js",
+  "main": "src/brightscript/index.js",
   "bin": {
-    "roku-graphify": "src/cli.js"
+    "roku-graphify": "src/cli/analyze-file.js"
   },
   "scripts": {
     "build-grammar": "cd tree-sitter-brightscript && npx tree-sitter generate && npx node-gyp configure && npx node-gyp build",
-    "demo": "node src/cli.js examples/demo.brs --format summary",
-    "demo:dot": "node src/cli.js examples/demo.brs --format dot",
-    "demo:json": "node src/cli.js examples/demo.brs --format json",
-    "test": "node src/cli.js examples/demo.brs --format json && node -e \"require('./src/graphify-integration')\" && echo 'All checks passed'",
-    "generate-sdk-exports": "node src/generate-exports.mjs",
+    "demo": "node src/cli/analyze-file.js examples/demo.brs --format summary",
+    "demo:dot": "node src/cli/analyze-file.js examples/demo.brs --format dot",
+    "demo:json": "node src/cli/analyze-file.js examples/demo.brs --format json",
+    "test": "node src/cli/analyze-file.js examples/demo.brs --format json && node -e \"require('./src/app/graphify')\" && echo 'All checks passed'",
+    "generate-sdk-exports": "node src/cli/generate-exports.mjs",
     "generate-ebnf": "node src/ebnf/generate.mjs",
-    "analyze-app": "node src/analyze-app.mjs"
+    "analyze-app": "node src/cli/analyze-app.mjs"
   },
   "dependencies": {
     "@sentropic/graphify": "^0.15.0",

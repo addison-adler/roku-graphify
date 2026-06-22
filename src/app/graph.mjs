@@ -25,12 +25,12 @@
 import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
-import { resolveSDKNode, resolveSDKMethod, sdkGraphAvailable } from './sdk-refs.mjs';
+import { resolveSDKNode, resolveSDKMethod, sdkGraphAvailable } from '../sdk/refs.mjs';
 
 const require = createRequire(import.meta.url);
 const Graph = require('graphology').default || require('graphology');
-const { parse } = require('./parser.js');
-const { runQuery, QUERIES } = require('./queries.js');
+const { parse } = require('../brightscript/parser.js');
+const { runQuery, QUERIES } = require('../brightscript/queries.js');
 
 // ── XML helpers ───────────────────────────────────────────────────────────────
 

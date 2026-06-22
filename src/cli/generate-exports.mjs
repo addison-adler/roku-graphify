@@ -10,7 +10,7 @@
 
 import { createRequire } from 'module';
 import { cluster, toWiki, toJson, buildStaticStudio } from '@sentropic/graphify';
-import { loadRokuSdkGraph } from './roku-sdk-graph.js';
+import { loadRokuSdkGraph } from '../sdk/graph.js';
 import fs from 'fs';
 import path from 'path';
 

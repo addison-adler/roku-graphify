@@ -15,7 +15,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { buildAppGraph } from './app-graph.mjs';
+import { buildAppGraph } from '../app/graph.mjs';
 import { cluster, toWiki, toJson, buildStaticStudio } from '@sentropic/graphify';
 
 // ── Args ──────────────────────────────────────────────────────────────────────
