@@ -1,0 +1,4 @@
+# Generated graph database — do not commit
+graph.db
+graph.db-wal
+graph.db-shm

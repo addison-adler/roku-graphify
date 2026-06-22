@@ -14,6 +14,16 @@
       "takes_args": true,
       "args_help": "<app-dir> [output-dir]"
     }
+  },
+  "mcpServers": {
+    "code-review-graph": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/addison-adler/code-review-graph",
+        "code-review-graph",
+        "serve"
+      ]
+    }
   }
 }
-
