@@ -1,10 +1,11 @@
 # Community 16
 
-> 1 nodes
+> 2 nodes
 
 ## Key Concepts
 
-- **OnContentChanged** (0 connections)
+- **getComponentWidth** (5 connections)
+- **getParentWidth** (5 connections)
 
 ## Relationships
 
@@ -12,7 +13,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

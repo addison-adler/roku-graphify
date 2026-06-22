@@ -4,14 +4,14 @@
 
 ## Key Concepts
 
-- **UriHandler** (9 connections)
-- **ContentCache (node)** (1 connections)
-- **content (node)** (1 connections)
-- **contentSet (boolean)** (1 connections)
-- **numBadRequests (integer)** (1 connections)
-- **numRows (integer)** (1 connections)
-- **numRowsReceived (integer)** (1 connections)
-- **request (assocarray)** (1 connections)
+- **onControlChange** (6 connections)
+- **omImageLoadStatusChange** (5 connections)
+- **stopAnimation** (5 connections)
+- **onFadeAnimationStateChange** (4 connections)
+- **startAnimation** (4 connections)
+- **init** (3 connections)
+- **control (string)** (2 connections)
+- **roDeviceInfo** (1 connections)
 
 ## Relationships
 
@@ -19,7 +19,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 16 (100%)
+- EXTRACTED: 26 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

@@ -89,8 +89,25 @@ function parseXml(xmlText, filePath) {
 // ── BRS helpers ───────────────────────────────────────────────────────────────
 
 /**
+ * Extract function/sub definitions via regex (case-insensitive).
+ * Used as a reliable fallback when tree-sitter returns parse errors on
+ * mixed-case keywords like "Sub Init()" or "End Sub".
+ * Returns array of { text, startLine }.
+ */
+function extractFunctionDefs(source) {
+  const results = [];
+  const lines = source.split('\n');
+  const pattern = /^\s*(?:function|sub)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/i;
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(pattern);
+    if (m) results.push({ text: m[1], startLine: i + 1 });
+  }
+  return results;
+}
+
+/**
  * Extract CreateObject("roXxx") calls from BrightScript source.
- * Returns array of { sdkType, callerContext }
+ * Returns array of SDK type name strings.
  */
 function extractCreateObject(source) {
   const refs = [];
@@ -173,20 +190,35 @@ export function buildAppGraph(appDir) {
     }
   }
 
-  // ── 2. Scan BRS files ─────────────────────────────────────────────────────
+  // ── 2. First BRS pass: collect all app-defined function names ────────────────
+  // key: function name (case-insensitive) → canonical funcId in graph
 
   const brsFiles = findFiles(appDir, '.brs');
+  // Map: relPath → { source, tree, funcs }
+  const parsedBrs = [];
+  // Map: lowercase function name → funcId  (for cross-file call resolution)
+  const appFuncIds = new Map();
+
   for (const brsPath of brsFiles) {
     const source = fs.readFileSync(brsPath, 'utf8');
     const relPath = path.relative(appDir, brsPath);
-    const ownerComponent = scriptToComponent.get(relPath) || null;
-
-    // Parse tree
     let tree;
     try { tree = parse(source); } catch { continue; }
 
-    // Functions/subs
-    const funcs = runQuery(tree, QUERIES.functions);
+    const funcs = extractFunctionDefs(source);
+    for (const f of funcs) {
+      const funcId = `fn:${relPath}:${f.text}`;
+      appFuncIds.set(f.text.toLowerCase(), funcId);
+    }
+    parsedBrs.push({ brsPath, relPath, source, tree, funcs });
+  }
+
+  // ── 3. Second BRS pass: build nodes and edges ─────────────────────────────
+
+  for (const { relPath, source, tree, funcs } of parsedBrs) {
+    const ownerComponent = scriptToComponent.get(relPath) || null;
+
+    // Add function nodes
     for (const f of funcs) {
       const funcId = `fn:${relPath}:${f.text}`;
       addNode(G, funcId, { type: 'function', label: f.text, file: relPath });
@@ -194,7 +226,7 @@ export function buildAppGraph(appDir) {
       if (ownerComponent) {
         addEdge(G, `comp:${ownerComponent}`, funcId, { relation: 'defines' });
 
-        // Wire onChange handlers: if a field's onChange matches this function
+        // Wire onChange handlers
         const comp = components.get(ownerComponent);
         if (comp) {
           for (const field of comp.fields) {
@@ -209,23 +241,21 @@ export function buildAppGraph(appDir) {
       }
     }
 
-    // Call graph — resolve callee within same file first, then cross-file
+    // Call graph — only connect to app-defined functions.
+    // tree-sitter call extraction still works even when function *definitions*
+    // have parse errors (the keyword case issue only affects sub/function statements).
     const calls = runQuery(tree, QUERIES.calls);
-    // Build local function name → id map for this file
-    const localFns = new Map(funcs.map(f => [f.text, `fn:${relPath}:${f.text}`]));
+    const localFnIds = new Map(funcs.map(f => [f.text.toLowerCase(), `fn:${relPath}:${f.text}`]));
 
-    // We need caller context — re-walk the function nodes to get scope
     for (const call of calls) {
-      const callee = call.text;
-      const calleeId = localFns.get(callee) || `fn:?:${callee}`;
-      if (!G.hasNode(calleeId)) {
-        addNode(G, calleeId, { type: 'function', label: callee });
-      }
-      // Find which function this call is inside (approximation: nearest preceding function)
+      const key = call.text.toLowerCase();
+      // Prefer local definition, then cross-file; skip if not app-defined
+      const calleeId = localFnIds.get(key) || appFuncIds.get(key);
+      if (!calleeId) continue;
+
       const precedingFn = funcs.filter(f => f.startLine <= call.startLine).at(-1);
       if (precedingFn) {
-        const callerId = `fn:${relPath}:${precedingFn.text}`;
-        addEdge(G, callerId, calleeId, { relation: 'calls' });
+        addEdge(G, `fn:${relPath}:${precedingFn.text}`, calleeId, { relation: 'calls' });
       }
     }
 
@@ -234,16 +264,12 @@ export function buildAppGraph(appDir) {
       const sdkId = `sdk:${sdkType}`;
       addNode(G, sdkId, { type: 'sdk_type', label: sdkType });
 
-      // Link from any function in this file that contains the CreateObject call
-      const precedingFn = funcs.filter(f => {
-        const idx = source.indexOf(`CreateObject("${sdkType}"`);
-        const srcLine = source.slice(0, idx).split('\n').length;
-        return f.startLine <= srcLine;
-      }).at(-1);
-
+      const idx = source.toLowerCase().indexOf(`createobject("${sdkType.toLowerCase()}"`);
+      if (idx === -1) continue;
+      const srcLine = source.slice(0, idx).split('\n').length;
+      const precedingFn = funcs.filter(f => f.startLine <= srcLine).at(-1);
       if (precedingFn) {
-        const callerId = `fn:${relPath}:${precedingFn.text}`;
-        addEdge(G, callerId, sdkId, { relation: 'uses_sdk' });
+        addEdge(G, `fn:${relPath}:${precedingFn.text}`, sdkId, { relation: 'uses_sdk' });
       }
     }
   }

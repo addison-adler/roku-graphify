@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **OnVideoPlayerStateChange** (0 connections)
+- **OnRowItemSelected** (2 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 1 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

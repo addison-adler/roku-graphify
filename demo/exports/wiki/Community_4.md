@@ -4,15 +4,15 @@
 
 ## Key Concepts
 
-- **HeroScene** (7 connections)
-- **DetailsScreen** (5 connections)
-- **content (node)** (1 connections)
-- **itemSelected (integer)** (1 connections)
-- **videoPlayerVisible (bool)** (1 connections)
-- **content (node)** (1 connections)
-- **itemFocused (intarray)** (1 connections)
-- **numBadRequests (integer)** (1 connections)
-- **rowItemSelected (intarray)** (1 connections)
+- **Description** (9 connections)
+- **OnContentChanged** (4 connections)
+- **Init** (3 connections)
+- **Content (node)** (2 connections)
+- **Description (node)** (1 connections)
+- **ReleaseDate (node)** (1 connections)
+- **StarRating (node)** (1 connections)
+- **Title (node)** (1 connections)
+- **UserStarRating (node)** (1 connections)
 
 ## Relationships
 
@@ -20,7 +20,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 19 (100%)
+- EXTRACTED: 21 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

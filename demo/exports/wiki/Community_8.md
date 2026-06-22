@@ -1,13 +1,16 @@
 # Community 8
 
-> 4 nodes
+> 7 nodes
 
 ## Key Concepts
 
-- **customItem** (3 connections)
-- **height (float)** (1 connections)
-- **itemContent (node)** (1 connections)
-- **width (float)** (1 connections)
+- **updateLayout** (13 connections)
+- **getComponentHeight** (5 connections)
+- **max** (4 connections)
+- **getParentHeight** (3 connections)
+- **centered (bool)** (2 connections)
+- **height (float)** (2 connections)
+- **width (float)** (2 connections)
 
 ## Relationships
 
@@ -15,7 +18,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 6 (100%)
+- EXTRACTED: 29 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

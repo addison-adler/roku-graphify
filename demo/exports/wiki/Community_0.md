@@ -1,32 +1,27 @@
 # Community 0
 
-> 23 nodes
+> 18 nodes
 
 ## Key Concepts
 
-- **init** (20 connections)
-- **getParentHeight** (8 connections)
-- **max** (2 connections)
-- **stopAnimation** (2 connections)
-- **Left** (1 connections)
-- **changeRotationDirection** (1 connections)
-- **getComponentHeight** (1 connections)
-- **getComponentWidth** (1 connections)
-- **getParentWidth** (1 connections)
-- **omImageLoadStatusChange** (1 connections)
-- **onBackgroundImageChange** (1 connections)
-- **onBackgroundOpacityChange** (1 connections)
-- **onControlChange** (1 connections)
-- **onFadeAnimationStateChange** (1 connections)
-- **onImageHeightChange** (1 connections)
-- **onImageWidthChange** (1 connections)
-- **onTextChange** (1 connections)
-- **onTextPaddingChange** (1 connections)
-- **prevTextHeight** (1 connections)
-- **startAnimation** (1 connections)
-- **updateLayout** (1 connections)
-- **val** (1 connections)
-- **roDeviceInfo** (1 connections)
+- **UriHandler** (12 connections)
+- **showHeroScreen** (3 connections)
+- **addRequest** (2 connections)
+- **go** (2 connections)
+- **init** (2 connections)
+- **processResponse** (2 connections)
+- **roMessagePort** (2 connections)
+- **ContentCache (node)** (1 connections)
+- **content (node)** (1 connections)
+- **contentSet (boolean)** (1 connections)
+- **numBadRequests (integer)** (1 connections)
+- **numRows (integer)** (1 connections)
+- **numRowsReceived (integer)** (1 connections)
+- **request (assocarray)** (1 connections)
+- **updateContent** (1 connections)
+- **Main** (1 connections)
+- **roSGScreen** (1 connections)
+- **roUrlTransfer** (1 connections)
 
 ## Relationships
 
@@ -34,7 +29,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 51 (100%)
+- EXTRACTED: 36 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

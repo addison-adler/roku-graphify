@@ -1,10 +1,11 @@
 # Community 11
 
-> 1 nodes
+> 2 nodes
 
 ## Key Concepts
 
-- **Function** (0 connections)
+- **onBackgroundImageChange** (4 connections)
+- **backgroundUri (string)** (2 connections)
 
 ## Relationships
 
@@ -12,7 +13,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 5 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

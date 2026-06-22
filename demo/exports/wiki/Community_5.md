@@ -4,15 +4,15 @@
 
 ## Key Concepts
 
-- **updateContent** (7 connections)
-- **showHeroScreen** (5 connections)
-- **type** (3 connections)
-- **wait** (2 connections)
-- **roMessagePort** (2 connections)
-- **processResponse** (1 connections)
-- **Main** (1 connections)
-- **roSGScreen** (1 connections)
-- **roUrlTransfer** (1 connections)
+- **Parser** (7 connections)
+- **parseResponse** (5 connections)
+- **createGrid** (4 connections)
+- **createRow** (4 connections)
+- **response (assocarray)** (2 connections)
+- **init** (1 connections)
+- **AddAndSetFields** (1 connections)
+- **select** (1 connections)
+- **roXMLElement** (1 connections)
 
 ## Relationships
 
@@ -20,7 +20,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 23 (100%)
+- EXTRACTED: 24 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
