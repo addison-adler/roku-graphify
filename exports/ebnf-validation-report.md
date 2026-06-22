@@ -1,5 +1,5 @@
 # EBNF Validation Report
-Generated: 2026-06-21T23:55:28.392Z
+Generated: 2026-06-22T03:38:51.287Z
 
 ## Grammar AST (brightscript)
 

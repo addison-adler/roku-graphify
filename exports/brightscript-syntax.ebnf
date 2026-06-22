@@ -1,6 +1,6 @@
 (* ═══════════════════════════════════════════════════════════════
    BrightScript Language Grammar — EBNF
-   Derived from tree-sitter-brightscript grammar.js
+   Derived from grammars/brightscript grammar.js
    W3C-style notation: , = seq  | = alt  [ ] = opt  { } = repeat
    ═══════════════════════════════════════════════════════════════ *)
 
