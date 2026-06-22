@@ -1,0 +1,7 @@
+[languages.brightscript]
+extensions = [".brs"]
+grammar = "brightscript"
+function_node_types = ["function_statement", "sub_statement"]
+import_node_types = ["library_statement"]
+call_node_types = ["function_call", "call_expression"]
+comment = "BrightScript (Roku) via ajdelcimmuto/tree-sitter-brightscript in tree_sitter_language_pack"
