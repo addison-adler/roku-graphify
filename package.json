@@ -7,7 +7,7 @@
     "roku-graphify": "src/cli/analyze-file.js"
   },
   "scripts": {
-    "build-grammar": "cd tree-sitter-brightscript && npx tree-sitter generate && npx node-gyp configure && npx node-gyp build",
+    "build-grammar": "cd grammars/brightscript && npx tree-sitter generate && npx node-gyp configure && npx node-gyp build",
     "demo": "node src/cli/analyze-file.js examples/demo.brs --format summary",
     "demo:dot": "node src/cli/analyze-file.js examples/demo.brs --format dot",
     "demo:json": "node src/cli/analyze-file.js examples/demo.brs --format json",

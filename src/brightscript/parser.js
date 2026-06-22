@@ -10,10 +10,10 @@ function getParser() {
   if (parser) return parser;
 
   try {
-    BrightScript = require(path.join(__dirname, '..', '..', 'tree-sitter-brightscript', 'bindings', 'node'));
+    BrightScript = require(path.join(__dirname, '..', '..', 'grammars', 'brightscript', 'bindings', 'node'));
   } catch {
     throw new Error(
-      'tree-sitter-brightscript native binding not found.\n' +
+      'grammars/brightscript native binding not found.\n' +
       'Run: npm run build-grammar'
     );
   }
