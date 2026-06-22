@@ -1,0 +1,12 @@
+{
+  "rootDir": ".",
+  "files": [
+    "**/*.brs",
+    "**/*.bs",
+    "**/*.xml",
+    "manifest"
+  ],
+  "plugins": [
+    "./plugins/crg.js"
+  ]
+}
