@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { analyze } = require('./index');
+const { analyze } = require('../brightscript/index');
 
 const args = process.argv.slice(2);
 const formatFlag = args.indexOf('--format');

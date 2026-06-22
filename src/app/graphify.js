@@ -10,7 +10,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const { analyze } = require('./index');
+const { analyze } = require('../brightscript/index');
 const { loadGraphFromData } = require('@sentropic/graphify');
 
 /**

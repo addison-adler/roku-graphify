@@ -2,7 +2,7 @@
   "schema": "graphify_workspace_manifest_v1",
   "schema_version": 1,
   "contract": "workspace-bundle-contract-v1",
-  "generated_at": "2026-06-21T23:31:35.405Z",
+  "generated_at": "2026-06-22T03:38:59.301Z",
   "graph_hash": null,
   "present_count": 4,
   "artifacts": [
