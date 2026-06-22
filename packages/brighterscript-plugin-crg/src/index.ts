@@ -12,6 +12,42 @@ export interface PluginOptions {
   dbPath?: string;
 }
 
+function stripRoot(s: string, prefix: string): string {
+  // Only strip if the string starts with the root prefix.
+  // Bare callee names (e.g. "parseResponse", "m.top.setFocus") are left as-is.
+  return s.startsWith(prefix) ? s.slice(prefix.length) : s;
+}
+
+function relativizePaths(
+  data: { nodes: unknown[]; edges: unknown[] },
+  rootDir: string,
+): { nodes: unknown[]; edges: unknown[] } {
+  const prefix = rootDir.endsWith(path.sep) ? rootDir : rootDir + path.sep;
+
+  function rel(qname: string): string {
+    // qualified names may be "abs/path::symbol" or just "abs/path"
+    const sep = qname.indexOf('::');
+    if (sep === -1) return stripRoot(qname, prefix);
+    return stripRoot(qname.slice(0, sep), prefix) + '::' + qname.slice(sep + 2);
+  }
+
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    nodes: (data.nodes as any[]).map(n => ({
+      ...n,
+      file_path: stripRoot(n.file_path as string, prefix),
+      qualified_name: rel(n.qualified_name as string),
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    edges: (data.edges as any[]).map(e => ({
+      ...e,
+      file_path: stripRoot(e.file_path as string, prefix),
+      source_qualified: rel(e.source_qualified as string),
+      target_qualified: rel(e.target_qualified as string),
+    })),
+  };
+}
+
 export default function crgPlugin(
   options: PluginOptions = {},
   // second arg is the standard v1 PluginFactoryOptions (version info); unused here
@@ -46,7 +82,8 @@ export default function crgPlugin(
       } finally {
         writer.flush();
         const jsonPath = dbPath.replace(/\.db$/, '.json');
-        fs.writeFileSync(jsonPath, JSON.stringify(writer.queryAll(), null, 2));
+        const absRootDir = path.resolve(rootDir);
+        fs.writeFileSync(jsonPath, JSON.stringify(relativizePaths(writer.queryAll(), absRootDir), null, 2));
         writer.close();
       }
     },

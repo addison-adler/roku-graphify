@@ -39,6 +39,36 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const extractor_1 = require("./extractor");
 const writer_1 = require("./writer");
+function stripRoot(s, prefix) {
+    // Only strip if the string starts with the root prefix.
+    // Bare callee names (e.g. "parseResponse", "m.top.setFocus") are left as-is.
+    return s.startsWith(prefix) ? s.slice(prefix.length) : s;
+}
+function relativizePaths(data, rootDir) {
+    const prefix = rootDir.endsWith(path.sep) ? rootDir : rootDir + path.sep;
+    function rel(qname) {
+        // qualified names may be "abs/path::symbol" or just "abs/path"
+        const sep = qname.indexOf('::');
+        if (sep === -1)
+            return stripRoot(qname, prefix);
+        return stripRoot(qname.slice(0, sep), prefix) + '::' + qname.slice(sep + 2);
+    }
+    return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        nodes: data.nodes.map(n => ({
+            ...n,
+            file_path: stripRoot(n.file_path, prefix),
+            qualified_name: rel(n.qualified_name),
+        })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        edges: data.edges.map(e => ({
+            ...e,
+            file_path: stripRoot(e.file_path, prefix),
+            source_qualified: rel(e.source_qualified),
+            target_qualified: rel(e.target_qualified),
+        })),
+    };
+}
 function crgPlugin(options = {}, 
 // second arg is the standard v1 PluginFactoryOptions (version info); unused here
 _bscOptions) {
@@ -67,7 +97,8 @@ _bscOptions) {
             finally {
                 writer.flush();
                 const jsonPath = dbPath.replace(/\.db$/, '.json');
-                fs.writeFileSync(jsonPath, JSON.stringify(writer.queryAll(), null, 2));
+                const absRootDir = path.resolve(rootDir);
+                fs.writeFileSync(jsonPath, JSON.stringify(relativizePaths(writer.queryAll(), absRootDir), null, 2));
                 writer.close();
             }
         },
