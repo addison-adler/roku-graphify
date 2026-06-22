@@ -1,5 +1,5 @@
 node_modules/
-tree-sitter-brightscript/node_modules/
-tree-sitter-brightscript/build/
+grammars/brightscript/node_modules/
+grammars/brightscript/build/
 *.node
 exports/.graphify-state/
