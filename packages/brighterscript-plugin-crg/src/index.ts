@@ -1,5 +1,6 @@
 import type { AfterValidateProgramEvent, Plugin, PluginFactoryOptions } from 'brighterscript';
 import { isBrsFile } from 'brighterscript';
+import * as fs from 'fs';
 import * as path from 'path';
 import { extractFile } from './extractor';
 import { GraphWriter } from './writer';
@@ -44,6 +45,8 @@ export default function crgPlugin(
         }
       } finally {
         writer.flush();
+        const jsonPath = dbPath.replace(/\.db$/, '.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(writer.queryAll(), null, 2));
         writer.close();
       }
     },

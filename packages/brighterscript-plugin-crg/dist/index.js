@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = crgPlugin;
 const brighterscript_1 = require("brighterscript");
+const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const extractor_1 = require("./extractor");
 const writer_1 = require("./writer");
@@ -65,6 +66,8 @@ _bscOptions) {
             }
             finally {
                 writer.flush();
+                const jsonPath = dbPath.replace(/\.db$/, '.json');
+                fs.writeFileSync(jsonPath, JSON.stringify(writer.queryAll(), null, 2));
                 writer.close();
             }
         },

@@ -8,6 +8,10 @@ export declare class GraphWriter {
     upsertNodes(nodes: CrgNode[]): void;
     upsertEdges(edges: CrgEdge[]): void;
     flush(): void;
+    queryAll(): {
+        nodes: unknown[];
+        edges: unknown[];
+    };
     close(): void;
 }
 //# sourceMappingURL=writer.d.ts.map
