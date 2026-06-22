@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphstruct.org/graphml"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://graphml.graphstruct.org/graphml">
+  <key id="kind" for="node" attr.name="kind" attr.type="string"/>
+  <key id="file" for="node" attr.name="file" attr.type="string"/>
+  <key id="language" for="node" attr.name="language" attr.type="string"/>
+  <key id="community" for="node" attr.name="community" attr.type="int"/>
+  <key id="edge_kind" for="edge" attr.name="kind" attr.type="string"/>
+  <graph id="code-review-graph" edgedefault="directed">
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::Init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">1</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundUriChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">1</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnSizeChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">1</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundLoaded">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">1</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::select">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">2</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::Init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">3</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::OnContentChanged">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">3</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVisibleChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnFocusedChildChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVideoVisibleChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnVideoPlayerStateChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onItemSelected">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnContentChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">4</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onContentChanged">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::OnItemFocused">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onVisibleChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onFocusedChildChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">5</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::changeRotationDirection">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundImageChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundOpacityChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">6</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/heroScene.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::init">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/heroScene.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">7</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnChangeContent">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/heroScene.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">7</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnRowItemSelected">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/heroScene.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">7</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::onKeyEvent">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/components/heroScene.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">7</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/source/main.brs">
+      <data key="kind">File</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/source/main.brs</data>
+      <data key="language">brightscript</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/source/main.brs::Main">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/source/main.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">8</data>
+    </node>
+    <node id="/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen">
+      <data key="kind">Function</data>
+      <data key="file">/home/user/roku-graphify/demo/roku-app/source/main.brs</data>
+      <data key="language">brightscript</data>
+      <data key="community">8</data>
+    </node>
+    <edge id="e0" source="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs" target="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::Init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e1" source="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs" target="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundUriChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e2" source="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs" target="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnSizeChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e3" source="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs" target="/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundLoaded">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e4" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e5" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e6" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e7" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e8" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e9" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow" target="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e10" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e11" source="/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid" target="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e12" source="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::select">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e13" source="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e14" source="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e15" source="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e16" source="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs" target="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e17" source="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go" target="/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e18" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::Init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e19" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::OnContentChanged">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e20" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e21" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e22" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVisibleChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e23" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnFocusedChildChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e24" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVideoVisibleChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e25" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnVideoPlayerStateChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e26" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onItemSelected">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e27" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnContentChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e28" source="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e29" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e30" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e31" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e32" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onContentChanged">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e33" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::OnItemFocused">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e34" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onVisibleChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e35" source="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs" target="/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onFocusedChildChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e36" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e37" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e38" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e39" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e40" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e41" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e42" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e43" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e44" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e45" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e46" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::changeRotationDirection">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e47" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e48" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e49" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e50" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e51" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e52" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e53" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e54" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundImageChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e55" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundOpacityChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e56" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e57" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e58" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e59" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e60" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e61" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e62" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e63" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e64" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e65" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e66" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e67" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e68" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e69" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e70" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e71" source="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs" target="/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e72" source="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs" target="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::init">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e73" source="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs" target="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnChangeContent">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e74" source="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs" target="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnRowItemSelected">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e75" source="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs" target="/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::onKeyEvent">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e76" source="/home/user/roku-graphify/demo/roku-app/source/main.brs" target="/home/user/roku-graphify/demo/roku-app/source/main.brs::Main">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+    <edge id="e77" source="/home/user/roku-graphify/demo/roku-app/source/main.brs::Main" target="/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen">
+      <data key="edge_kind">CALLS</data>
+    </edge>
+    <edge id="e78" source="/home/user/roku-graphify/demo/roku-app/source/main.brs" target="/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen">
+      <data key="edge_kind">CONTAINS</data>
+    </edge>
+  </graph>
+</graphml>

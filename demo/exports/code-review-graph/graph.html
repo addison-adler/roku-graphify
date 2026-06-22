@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Review Graph</title>
+<script src="https://d3js.org/d3.v7.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0d1117; color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+  }
+  svg { display: block; width: 100%; height: 100%; }
+  #legend {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(22,27,34,0.95); border: 1px solid #30363d;
+    border-radius: 10px; padding: 16px 20px;
+    font-size: 12px; line-height: 1.8;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px); z-index: 10;
+  }
+  #legend h3 {
+    font-size: 11px; font-weight: 700; margin-bottom: 6px;
+    color: #9eaab6; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .legend-section { margin-bottom: 10px; }
+  .legend-section:last-child { margin-bottom: 0; }
+  .legend-item { display: flex; align-items: center; gap: 10px; padding: 2px 0; cursor: default; }
+  .legend-item[data-edge-kind] { cursor: pointer; user-select: none; }
+  .legend-item[data-edge-kind].dimmed { opacity: 0.3; }
+  .legend-item svg { flex-shrink: 0; }
+  .legend-line { width: 24px; height: 0; flex-shrink: 0; border-top-width: 2px; }
+  .l-calls    { border-top: 2px solid #3fb950; }
+  .l-imports  { border-top: 2px dashed #f0883e; }
+  .l-inherits { border-top: 2.5px dotted #d2a8ff; }
+  .l-contains { border-top: 1px solid rgba(139,148,158,0.3); }
+  #stats-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(13,17,23,0.95); border-top: 1px solid #21262d;
+    padding: 8px 24px; display: flex; gap: 32px; justify-content: center;
+    font-size: 12px; color: #9eaab6; backdrop-filter: blur(12px);
+  }
+  .stat-item { display: flex; gap: 6px; align-items: center; }
+  .stat-value { color: #e6edf3; font-weight: 600; }
+  #tooltip {
+    position: absolute; pointer-events: none;
+    background: rgba(22,27,34,0.97); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px 16px; font-size: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    max-width: 360px; line-height: 1.7;
+    opacity: 0; transition: opacity 0.15s ease;
+    z-index: 1000; backdrop-filter: blur(12px);
+  }
+  #tooltip.visible { opacity: 1; }
+  .tt-name { font-weight: 700; font-size: 14px; color: #e6edf3; }
+  .tt-kind {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tt-row { margin-top: 4px; }
+  .tt-label { color: #9eaab6; }
+  .tt-file { color: #58a6ff; font-size: 11px; }
+  #controls {
+    position: absolute; top: 16px; right: 16px;
+    display: flex; gap: 8px; z-index: 10; flex-wrap: wrap;
+    max-width: 650px; justify-content: flex-end;
+  }
+  #controls button, #controls select {
+    background: rgba(22,27,34,0.95); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 8px 14px; font-size: 12px; cursor: pointer;
+    backdrop-filter: blur(12px); transition: all 0.15s;
+  }
+  #controls button:hover, #controls select:hover { background: #30363d; border-color: #8b949e; }
+  #controls button.active { background: #1f6feb; border-color: #58a6ff; color: #fff; }
+  #controls select { outline: none; max-width: 200px; }
+  #controls select option { background: #161b22; color: #c9d1d9; }
+  #search {
+    background: rgba(22,27,34,0.95); color: #c9d1d9;
+    border: 1px solid #30363d; border-radius: 8px;
+    padding: 8px 14px; font-size: 12px; width: 220px;
+    outline: none; backdrop-filter: blur(12px);
+  }
+  #search:focus { border-color: #58a6ff; }
+  #search::placeholder { color: #6e7681; }
+  #search-results {
+    position: absolute; top: 52px; right: 16px;
+    background: rgba(22,27,34,0.97); border: 1px solid #30363d;
+    border-radius: 8px; max-height: 240px; overflow-y: auto;
+    z-index: 15; display: none; min-width: 220px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .sr-item {
+    padding: 8px 14px; cursor: pointer; font-size: 12px;
+    border-bottom: 1px solid #21262d; display: flex; gap: 8px; align-items: center;
+  }
+  .sr-item:hover { background: #30363d; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-kind { font-size: 9px; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; font-weight: 700; }
+  #detail-panel {
+    position: absolute; top: 16px; left: 16px;
+    width: 320px; max-height: calc(100vh - 80px);
+    background: rgba(22,27,34,0.97); border: 1px solid #30363d;
+    border-radius: 10px; padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px); z-index: 15;
+    overflow-y: auto; display: none; font-size: 12px;
+  }
+  #detail-panel.visible { display: block; }
+  #detail-panel h2 { font-size: 16px; color: #e6edf3; margin-bottom: 4px; word-break: break-all; }
+  #detail-panel .dp-close {
+    position: absolute; top: 12px; right: 14px;
+    cursor: pointer; color: #8b949e; font-size: 14px; line-height: 1;
+    border: 1px solid #30363d; background: rgba(22,27,34,0.95);
+    border-radius: 6px; width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  #detail-panel .dp-close:hover { color: #e6edf3; border-color: #8b949e; background: #30363d; }
+  .dp-section { margin-top: 14px; }
+  .dp-section h4 { color: #9eaab6; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .dp-list { list-style: none; }
+  .dp-list li { padding: 3px 0; color: #c9d1d9; cursor: pointer; }
+  .dp-list li:hover { color: #58a6ff; text-decoration: underline; }
+  .dp-meta { color: #9eaab6; }
+  .dp-meta span { color: #e6edf3; font-weight: 600; }
+  #filter-panel {
+    position: absolute; bottom: 50px; left: 16px;
+    background: rgba(22,27,34,0.95); border: 1px solid #30363d;
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 12px; backdrop-filter: blur(12px); z-index: 10;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #filter-panel h3 {
+    font-size: 11px; font-weight: 700; margin-bottom: 8px;
+    color: #9eaab6; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .filter-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; user-select: none; }
+  .filter-item input { accent-color: #58a6ff; cursor: pointer; }
+  :focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+  .filter-item input:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+  .dp-close:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+  .filter-item:focus-within { outline: 2px solid #58a6ff; outline-offset: 2px; border-radius: 4px; }
+  #help-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  #help-overlay.hidden { display: none; }
+  .help-content {
+    position: relative; background: #161b22; border: 1px solid #30363d;
+    border-radius: 12px; padding: 28px 32px; max-width: 420px; width: 90%;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  .help-content h2 { font-size: 16px; color: #e6edf3; margin-bottom: 16px; }
+  .help-content .help-close { position: absolute; top: 12px; right: 14px; }
+  .help-content table { width: 100%; border-collapse: collapse; }
+  .help-content td { padding: 6px 8px; color: #c9d1d9; font-size: 13px; border-bottom: 1px solid #21262d; }
+  .help-content td:first-child { white-space: nowrap; width: 1%; }
+  kbd {
+    display: inline-block; background: #21262d; border: 1px solid #30363d;
+    border-radius: 5px; padding: 2px 7px; font-size: 11px; font-family: inherit;
+    color: #e6edf3; box-shadow: inset 0 -1px 0 #0d1117; line-height: 1.6;
+  }
+  .help-dismiss {
+    margin-top: 16px; display: block; text-align: center;
+    color: #8b949e; font-size: 12px; cursor: pointer;
+  }
+  .help-dismiss:hover { color: #e6edf3; }
+  #loading-overlay {
+    position: fixed; inset: 0; display: flex; align-items: center;
+    justify-content: center; z-index: 50; background: rgba(13,17,23,0.85);
+    backdrop-filter: blur(6px); transition: opacity 0.4s ease;
+  }
+  #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-spinner {
+    width: 36px; height: 36px; border: 3px solid #30363d;
+    border-top-color: #58a6ff; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: #9eaab6; font-size: 13px; margin-top: 14px; text-align: center; }
+  #empty-state {
+    position: fixed; inset: 0; display: none; align-items: center;
+    justify-content: center; z-index: 50; flex-direction: column; gap: 12px;
+  }
+  #empty-state.visible { display: flex; }
+  .empty-icon { font-size: 48px; opacity: 0.4; }
+  .empty-title { color: #e6edf3; font-size: 18px; font-weight: 600; }
+  .empty-desc { color: #9eaab6; font-size: 13px; max-width: 320px; text-align: center; line-height: 1.6; }
+  #community-legend {
+    position: absolute; bottom: 50px; right: 16px;
+    background: rgba(22,27,34,0.95);
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 18px; font-size: 12px;
+    backdrop-filter: blur(12px); z-index: 10;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    max-height: 300px; overflow-y: auto;
+    display: none;
+  }
+  #community-legend.visible { display: block; }
+  #community-legend h3 {
+    font-size: 11px; font-weight: 700;
+    margin-bottom: 8px; color: #8b949e;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .cl-item {
+    display: flex; align-items: center;
+    gap: 8px; padding: 3px 0;
+    cursor: pointer; user-select: none;
+  }
+  .cl-item input {
+    accent-color: #58a6ff; cursor: pointer;
+  }
+  .cl-swatch {
+    width: 10px; height: 10px;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  marker { overflow: visible; }
+  g.node-g:focus { outline: none; }
+  g.node-g:focus-visible .node-shape { stroke: #58a6ff !important; stroke-width: 3 !important; }
+  g.node-g:focus-visible .glow-ring { stroke: #58a6ff !important; opacity: 0.6 !important; }
+  button.legend-edge { background: none; border: none; color: #c9d1d9; font-size: 12px; font-family: inherit; }
+  button.legend-edge:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; border-radius: 4px; }
+  .sr-item.sr-active { background: #30363d; }
+  .skip-link {
+    position: absolute; top: -40px; left: 16px; z-index: 100;
+    background: #1f6feb; color: #fff; padding: 8px 16px;
+    border-radius: 0 0 8px 8px; text-decoration: none; font-weight: 600;
+    transition: top 0.2s;
+  }
+  .skip-link:focus { top: 0; }
+</style>
+</head>
+<body>
+<a href="#graph-svg" class="skip-link">Skip to graph</a>
+<nav id="legend" aria-label="Graph legend">
+  <h3>Nodes</h3>
+  <div class="legend-section">
+    <div class="legend-item"><svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><circle r="6" fill="#58a6ff"/></svg> File</div>
+    <div class="legend-item"><svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><rect x="-5" y="-5" width="10" height="10" fill="#f0883e"/></svg> Class</div>
+    <div class="legend-item"><svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><polygon points="0,-6 6,5 -6,5" fill="#3fb950"/></svg> Function</div>
+    <div class="legend-item"><svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><polygon points="0,-6 6,0 0,6 -6,0" fill="#d2a8ff"/></svg> Test</div>
+    <div class="legend-item"><svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><path d="M-2,-6v4h-4v4h4v4h4v-4h4v-4h-4v-4z" fill="#8b949e"/></svg> Type</div>
+  </div>
+  <h3>Edges</h3>
+  <div class="legend-section">
+    <button class="legend-item legend-edge" data-edge-kind="CALLS" aria-pressed="true"><span class="legend-line l-calls"></span> Calls</button>
+    <button class="legend-item legend-edge" data-edge-kind="IMPORTS_FROM" aria-pressed="true"><span class="legend-line l-imports"></span> Imports</button>
+    <button class="legend-item legend-edge" data-edge-kind="INHERITS" aria-pressed="true"><span class="legend-line l-inherits"></span> Inherits</button>
+    <button class="legend-item legend-edge" data-edge-kind="CONTAINS" aria-pressed="true"><span class="legend-line l-contains"></span> Contains</button>
+    <button class="legend-item legend-edge" data-edge-kind="IMPLEMENTS" aria-pressed="true"><span class="legend-line" style="border-top:2px dashed #f9e2af"></span> Implements</button>
+    <button class="legend-item legend-edge" data-edge-kind="TESTED_BY" aria-pressed="true"><span class="legend-line" style="border-top:2px dotted #f38ba8"></span> Tested By</button>
+    <button class="legend-item legend-edge" data-edge-kind="DEPENDS_ON" aria-pressed="true"><span class="legend-line" style="border-top:2px dashed #fab387"></span> Depends On</button>
+  </div>
+</nav>
+<div id="filter-panel">
+  <h3>Filter by Kind</h3>
+  <label class="filter-item"><input type="checkbox" data-kind="File" checked> File</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Class" checked> Class</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Function" checked> Function</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Test" checked> Test</label>
+  <label class="filter-item"><input type="checkbox" data-kind="Type" checked> Type</label>
+</div>
+<div id="controls">
+  <input id="search" type="text" placeholder="Search nodes&#8230;" autocomplete="off" spellcheck="false" aria-label="Search graph nodes by name" aria-controls="search-results" aria-expanded="false">
+  <select id="flow-select" aria-label="Select execution flow to highlight"><option value="">Flows</option></select>
+  <button id="btn-community" title="Toggle community coloring" aria-label="Toggle community coloring" aria-pressed="false">Communities</button>
+  <button id="btn-fit" title="Fit to screen" aria-label="Fit graph to screen">Fit</button>
+  <button id="btn-labels" title="Toggle labels" class="active" aria-label="Toggle node labels" aria-pressed="true">Labels</button>
+  <button id="btn-help" title="Keyboard shortcuts" aria-label="Show keyboard shortcuts">?</button>
+</div>
+<div id="search-results" role="listbox" aria-label="Search results"></div>
+<div id="detail-panel" role="dialog" aria-label="Node detail" aria-modal="false"><button class="dp-close" aria-label="Close detail panel">&times;</button><div id="dp-content" tabindex="-1"></div></div>
+<div id="stats-bar" role="status" aria-label="Graph statistics"></div>
+<div id="community-legend" aria-label="Community legend"></div>
+<div id="tooltip" role="tooltip" aria-live="polite"></div>
+<div id="help-overlay" class="hidden" role="dialog" aria-label="Help overlay" aria-modal="true">
+  <div class="help-content">
+    <h2>Graph Interactions</h2>
+    <button class="dp-close help-close" aria-label="Close help">&times;</button>
+    <table>
+      <tr><td>Click a file</td><td>Expand/collapse contained symbols</td></tr>
+      <tr><td>Click symbol</td><td>Show detail panel with callers/callees</td></tr>
+      <tr><td>Shift+click file</td><td>Show detail panel without toggling collapse</td></tr>
+      <tr><td>Hover</td><td>Highlight connected nodes and edges</td></tr>
+      <tr><td>Drag</td><td>Pin a node in place</td></tr>
+      <tr><td>Scroll</td><td>Zoom in/out</td></tr>
+      <tr><td>Click+drag background</td><td>Pan the view</td></tr>
+      <tr><td>Search</td><td>Type to filter &mdash; matching nodes stay bright</td></tr>
+      <tr><td>Legend edges</td><td>Click edge types in the legend to toggle visibility</td></tr>
+    </table>
+    <h2 style="margin-top:16px">Keyboard Shortcuts</h2>
+    <table>
+      <tr><td><kbd>/</kbd></td><td>Focus search</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close panel / search / help</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activate focused node</td></tr>
+      <tr><td><kbd>Arrow keys</kbd></td><td>Navigate between nodes</td></tr>
+    </table>
+    <span class="help-dismiss">Click anywhere outside to dismiss</span>
+  </div>
+</div>
+<div id="loading-overlay" aria-live="polite">
+  <div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Laying out graph&hellip;</div>
+  </div>
+</div>
+<div id="empty-state" role="status">
+  <div class="empty-icon">&#x1F50D;</div>
+  <div class="empty-title">No nodes to display</div>
+  <div class="empty-desc">The graph is empty. Run <strong>code-review-graph build</strong> to index your codebase, then regenerate the visualization.</div>
+</div>
+<svg id="graph-svg" tabindex="-1" role="img" aria-label="Interactive code knowledge graph visualization. Use search to find nodes, click files to expand."></svg>
+<script>
+"use strict";
+var graphData = {"nodes": [{"id": 1, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line_start": 1, "line_end": 53, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 2, "kind": "Function", "name": "Init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line_start": 3, "line_end": 18, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 1}, {"id": 3, "kind": "Function", "name": "OnBackgroundUriChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundUriChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line_start": 21, "line_end": 30, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 1}, {"id": 4, "kind": "Function", "name": "OnSizeChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnSizeChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line_start": 33, "line_end": 46, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 1}, {"id": 5, "kind": "Function", "name": "OnBackgroundLoaded", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundLoaded", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line_start": 49, "line_end": 52, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 1}, {"id": 6, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line_start": 1, "line_end": 129, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 7, "kind": "Function", "name": "init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line_start": 3, "line_end": 5, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 2}, {"id": 8, "kind": "Function", "name": "parseResponse", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line_start": 9, "line_end": 89, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 2}, {"id": 9, "kind": "Function", "name": "createRow", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line_start": 92, "line_end": 104, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(list as object, num as Integer)", "return_type": null, "community_id": 2}, {"id": 10, "kind": "Function", "name": "createGrid", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line_start": 110, "line_end": 128, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(list as object)", "return_type": null, "community_id": 2}, {"id": 11, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "line_start": 1, "line_end": 29, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 12, "kind": "Function", "name": "select", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::select", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "line_start": 4, "line_end": 11, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(array as object, first as integer, last as integer)", "return_type": "as object", "community_id": 2}, {"id": 13, "kind": "Function", "name": "AddAndSetFields", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "line_start": 14, "line_end": 28, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(node as object, aa as object)", "return_type": null, "community_id": 2}, {"id": 14, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line_start": 1, "line_end": 211, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 15, "kind": "Function", "name": "init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line_start": 13, "line_end": 36, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 2}, {"id": 16, "kind": "Function", "name": "updateContent", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line_start": 39, "line_end": 66, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 2}, {"id": 17, "kind": "Function", "name": "go", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line_start": 79, "line_end": 107, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 2}, {"id": 18, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "line_start": 1, "line_end": 40, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 19, "kind": "Function", "name": "Init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "line_start": 4, "line_end": 9, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 3}, {"id": 20, "kind": "Function", "name": "OnContentChanged", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::OnContentChanged", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "line_start": 13, "line_end": 39, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 3}, {"id": 21, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 1, "line_end": 110, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 22, "kind": "Function", "name": "Init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 6, "line_end": 25, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 23, "kind": "Function", "name": "onVisibleChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 28, "line_end": 41, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 24, "kind": "Function", "name": "OnFocusedChildChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnFocusedChildChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 44, "line_end": 49, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 25, "kind": "Function", "name": "onVideoVisibleChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVideoVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 52, "line_end": 58, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 26, "kind": "Function", "name": "OnVideoPlayerStateChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnVideoPlayerStateChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 61, "line_end": 71, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 27, "kind": "Function", "name": "onItemSelected", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onItemSelected", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 74, "line_end": 83, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 28, "kind": "Function", "name": "OnContentChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnContentChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 86, "line_end": 94, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 4}, {"id": 29, "kind": "Function", "name": "ContentList2SimpleNode", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line_start": 98, "line_end": 109, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(contentList as Object, nodeType = \"ContentNode\" as String)", "return_type": "as Object", "community_id": 4}, {"id": 30, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 1, "line_end": 87, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 31, "kind": "Function", "name": "Init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 4, "line_end": 30, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 5}, {"id": 32, "kind": "Function", "name": "makeRequest", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 33, "line_end": 50, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(URLs as object, ParserComponent as String)", "return_type": null, "community_id": 5}, {"id": 33, "kind": "Function", "name": "onContentChanged", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onContentChanged", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 53, "line_end": 57, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 5}, {"id": 34, "kind": "Function", "name": "OnItemFocused", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::OnItemFocused", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 60, "line_end": 74, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 5}, {"id": 35, "kind": "Function", "name": "onVisibleChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 77, "line_end": 80, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 5}, {"id": 36, "kind": "Function", "name": "onFocusedChildChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onFocusedChildChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line_start": 83, "line_end": 86, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 5}, {"id": 37, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 1, "line_end": 272, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 38, "kind": "Function", "name": "init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 3, "line_end": 22, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 39, "kind": "Function", "name": "updateLayout", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 24, "line_end": 69, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 40, "kind": "Function", "name": "changeRotationDirection", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::changeRotationDirection", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 72, "line_end": 79, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 41, "kind": "Function", "name": "omImageLoadStatusChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 82, "line_end": 97, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 42, "kind": "Function", "name": "onImageWidthChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 100, "line_end": 109, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 43, "kind": "Function", "name": "onImageHeightChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 112, "line_end": 121, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 44, "kind": "Function", "name": "onTextChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 124, "line_end": 135, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 45, "kind": "Function", "name": "onBackgroundImageChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundImageChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 138, "line_end": 150, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 46, "kind": "Function", "name": "onBackgroundOpacityChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundOpacityChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 153, "line_end": 158, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 47, "kind": "Function", "name": "onTextPaddingChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 161, "line_end": 169, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 48, "kind": "Function", "name": "onControlChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 172, "line_end": 188, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 49, "kind": "Function", "name": "onFadeAnimationStateChange", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 191, "line_end": 196, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 50, "kind": "Function", "name": "getComponentWidth", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 199, "line_end": 207, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": "as Float", "community_id": 6}, {"id": 51, "kind": "Function", "name": "getComponentHeight", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 210, "line_end": 218, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": "as Float", "community_id": 6}, {"id": 52, "kind": "Function", "name": "getParentWidth", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 221, "line_end": 228, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": "as Float", "community_id": 6}, {"id": 53, "kind": "Function", "name": "getParentHeight", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 231, "line_end": 238, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": "as Float", "community_id": 6}, {"id": 54, "kind": "Function", "name": "startAnimation", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 241, "line_end": 254, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 55, "kind": "Function", "name": "stopAnimation", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 257, "line_end": 261, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 6}, {"id": 56, "kind": "Function", "name": "max", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line_start": 264, "line_end": 271, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(a as Float, b as Float)", "return_type": "as Float", "community_id": 6}, {"id": 57, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line_start": 1, "line_end": 92, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 58, "kind": "Function", "name": "init", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line_start": 4, "line_end": 20, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 7}, {"id": 59, "kind": "Function", "name": "OnChangeContent", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnChangeContent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line_start": 24, "line_end": 40, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 7}, {"id": 60, "kind": "Function", "name": "OnRowItemSelected", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnRowItemSelected", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line_start": 44, "line_end": 51, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 7}, {"id": 61, "kind": "Function", "name": "onKeyEvent", "qualified_name": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::onKeyEvent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line_start": 54, "line_end": 91, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(key as String, press as Boolean)", "return_type": "as Boolean", "community_id": 7}, {"id": 62, "kind": "File", "name": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "qualified_name": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line_start": 1, "line_end": 51, "language": "brightscript", "parent_name": null, "is_test": false, "params": null, "return_type": null, "community_id": null}, {"id": 63, "kind": "Function", "name": "Main", "qualified_name": "/home/user/roku-graphify/demo/roku-app/source/main.brs::Main", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line_start": 4, "line_end": 31, "language": "brightscript", "parent_name": null, "is_test": false, "params": "(input as Dynamic)", "return_type": null, "community_id": 8}, {"id": 64, "kind": "Function", "name": "showHeroScreen", "qualified_name": "/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line_start": 35, "line_end": 50, "language": "brightscript", "parent_name": null, "is_test": false, "params": "()", "return_type": null, "community_id": 8}], "edges": [{"id": 1, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line": 3, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 12, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundUriChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line": 21, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 13, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnSizeChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line": 33, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 14, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundLoaded", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs", "line": 49, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 15, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 3, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 16, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 9, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 33, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 76, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 34, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 78, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 38, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 92, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 42, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 99, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 45, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 110, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 50, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs", "line": 121, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 53, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::select", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "line": 4, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 55, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs", "line": 14, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 59, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line": 13, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 64, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line": 39, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 71, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line": 79, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 78, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go", "target": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs", "line": 95, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 101, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "line": 4, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 105, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::OnContentChanged", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs", "line": 13, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 111, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 6, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 122, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 24, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 123, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 28, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 125, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnFocusedChildChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 44, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 130, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVideoVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 52, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 132, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnVideoPlayerStateChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 61, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 133, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onItemSelected", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 74, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 136, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnContentChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 86, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 137, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode", "file_path": "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs", "line": 98, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 142, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 4, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 147, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 25, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 150, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 33, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 155, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onContentChanged", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 53, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 156, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::OnItemFocused", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 60, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 160, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onVisibleChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 77, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 162, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onFocusedChildChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs", "line": 83, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 166, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 3, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 176, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 19, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 177, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 21, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 178, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 24, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 184, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 31, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 185, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 32, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 186, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 39, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 187, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 39, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 188, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 42, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 189, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 52, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 190, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::changeRotationDirection", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 72, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 191, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 82, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 192, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 95, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 193, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 100, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 194, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 107, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 195, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 112, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 196, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 119, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 197, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 124, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 200, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundImageChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 138, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 202, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundOpacityChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 153, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 203, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 161, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 204, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 168, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 205, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 172, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 206, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 177, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 208, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 185, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 209, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 191, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 210, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 194, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 211, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 199, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 212, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 203, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 213, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 210, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 214, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 214, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 215, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 221, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 218, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 231, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 221, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 241, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 228, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 257, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 229, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max", "file_path": "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs", "line": 264, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 230, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::init", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line": 4, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 238, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnChangeContent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line": 24, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 241, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnRowItemSelected", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line": 44, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 243, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "target": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::onKeyEvent", "file_path": "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs", "line": 54, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 248, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "target": "/home/user/roku-graphify/demo/roku-app/source/main.brs::Main", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line": 4, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 249, "kind": "CALLS", "source": "/home/user/roku-graphify/demo/roku-app/source/main.brs::Main", "target": "/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line": 30, "confidence": 1.0, "confidence_tier": "EXTRACTED"}, {"id": 250, "kind": "CONTAINS", "source": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "target": "/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen", "file_path": "/home/user/roku-graphify/demo/roku-app/source/main.brs", "line": 35, "confidence": 1.0, "confidence_tier": "EXTRACTED"}], "stats": {"total_nodes": 64, "total_edges": 258, "nodes_by_kind": {"File": 10, "Function": 54}, "edges_by_kind": {"CALLS": 204, "CONTAINS": 54}, "languages": ["brightscript"], "files_count": 10, "last_updated": "2026-06-22T04:23:04"}, "flows": [{"id": 1, "name": "Init", "entry_point_id": 31, "depth": 1, "node_count": 2, "file_count": 1, "criticality": 0.485, "path": [31, 32], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 2, "name": "init", "entry_point_id": 38, "depth": 3, "node_count": 9, "file_count": 1, "criticality": 0.38, "path": [38, 41, 54, 39, 51, 50, 53, 52, 56], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 3, "name": "onImageWidthChange", "entry_point_id": 42, "depth": 2, "node_count": 7, "file_count": 1, "criticality": 0.37, "path": [42, 39, 51, 50, 53, 52, 56], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 4, "name": "onImageHeightChange", "entry_point_id": 43, "depth": 2, "node_count": 7, "file_count": 1, "criticality": 0.37, "path": [43, 39, 51, 50, 53, 52, 56], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 5, "name": "onTextPaddingChange", "entry_point_id": 47, "depth": 2, "node_count": 7, "file_count": 1, "criticality": 0.37, "path": [47, 39, 51, 50, 53, 52, 56], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 6, "name": "parseResponse", "entry_point_id": 8, "depth": 1, "node_count": 3, "file_count": 1, "criticality": 0.36, "path": [8, 10, 9], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 7, "name": "go", "entry_point_id": 17, "depth": 1, "node_count": 2, "file_count": 1, "criticality": 0.36, "path": [17, 16], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 8, "name": "Init", "entry_point_id": 22, "depth": 1, "node_count": 2, "file_count": 1, "criticality": 0.36, "path": [22, 29], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 9, "name": "onControlChange", "entry_point_id": 48, "depth": 1, "node_count": 3, "file_count": 1, "criticality": 0.36, "path": [48, 54, 55], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 10, "name": "Main", "entry_point_id": 63, "depth": 1, "node_count": 2, "file_count": 1, "criticality": 0.36, "path": [63, 64], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}, {"id": 11, "name": "onFadeAnimationStateChange", "entry_point_id": 49, "depth": 1, "node_count": 2, "file_count": 1, "criticality": 0.16, "path": [49, 55], "created_at": "2026-06-22 04:23:04", "updated_at": "2026-06-22 04:23:04"}], "communities": [{"id": 6, "name": "loadingindicator-change", "level": 0, "cohesion": 0.2656, "size": 19, "dominant_language": "brightscript", "description": "Directory-based community: components/LoadingIndicator", "members": ["/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::init", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::updateLayout", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::changeRotationDirection", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::omImageLoadStatusChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageWidthChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onImageHeightChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundImageChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onBackgroundOpacityChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onTextPaddingChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onControlChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::onFadeAnimationStateChange", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentWidth", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getComponentHeight", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentWidth", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::getParentHeight", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::startAnimation", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::stopAnimation", "/home/user/roku-graphify/demo/roku-app/components/LoadingIndicator/LoadingIndicator.brs::max"]}, {"id": 2, "name": "content-parse", "level": 0, "cohesion": 0.0462, "size": 9, "dominant_language": "brightscript", "description": "Directory-based community: components/Content", "members": ["/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::init", "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::parseResponse", "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createRow", "/home/user/roku-graphify/demo/roku-app/components/Content/Parser.brs::createGrid", "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::select", "/home/user/roku-graphify/demo/roku-app/components/Content/SGHelperFunctions.brs::AddAndSetFields", "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::init", "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::updateContent", "/home/user/roku-graphify/demo/roku-app/components/Content/UriHandler.brs::go"]}, {"id": 4, "name": "detailsscreen-change", "level": 0, "cohesion": 0.0323, "size": 8, "dominant_language": "brightscript", "description": "Directory-based community: components/DetailsScreen", "members": ["/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::Init", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVisibleChange", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnFocusedChildChange", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onVideoVisibleChange", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnVideoPlayerStateChange", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::onItemSelected", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::OnContentChange", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/DetailsScreen.brs::ContentList2SimpleNode"]}, {"id": 5, "name": "heroscreen-focused", "level": 0, "cohesion": 0.0417, "size": 6, "dominant_language": "brightscript", "description": "Directory-based community: components/HeroScreen", "members": ["/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::Init", "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::makeRequest", "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onContentChanged", "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::OnItemFocused", "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onVisibleChange", "/home/user/roku-graphify/demo/roku-app/components/HeroScreen/HeroScreen.brs::onFocusedChildChange"]}, {"id": 1, "name": "animations-background", "level": 0, "cohesion": 0.0, "size": 4, "dominant_language": "brightscript", "description": "Directory-based community: components/Animations", "members": ["/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::Init", "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundUriChange", "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnSizeChange", "/home/user/roku-graphify/demo/roku-app/components/Animations/FadingBackground.brs::OnBackgroundLoaded"]}, {"id": 7, "name": "components-change", "level": 0, "cohesion": 0.0, "size": 4, "dominant_language": "brightscript", "description": "Directory-based community: components", "members": ["/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::init", "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnChangeContent", "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::OnRowItemSelected", "/home/user/roku-graphify/demo/roku-app/components/heroScene.brs::onKeyEvent"]}, {"id": 3, "name": "description-content", "level": 0, "cohesion": 0.0, "size": 2, "dominant_language": "brightscript", "description": "Directory-based community: components/DetailsScreen/Description", "members": ["/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::Init", "/home/user/roku-graphify/demo/roku-app/components/DetailsScreen/Description/Description.brs::OnContentChanged"]}, {"id": 8, "name": "source-show", "level": 0, "cohesion": 0.0909, "size": 2, "dominant_language": "brightscript", "description": "Directory-based community: source", "members": ["/home/user/roku-graphify/demo/roku-app/source/main.brs::Main", "/home/user/roku-graphify/demo/roku-app/source/main.brs::showHeroScreen"]}]};
+var KIND_COLOR  = { File:"#58a6ff", Class:"#f0883e", Function:"#3fb950", Test:"#d2a8ff", Type:"#8b949e" };
+var KIND_RADIUS = { File:18, Class:12, Function:6, Test:6, Type:5 };
+var KIND_AREA   = { File:1018, Class:452, Function:113, Test:113, Type:79 };
+var KIND_SHAPE  = { File:d3.symbolCircle, Class:d3.symbolSquare, Function:d3.symbolTriangle, Test:d3.symbolDiamond, Type:d3.symbolCross };
+var EDGE_COLOR  = { CALLS:"#3fb950", IMPORTS_FROM:"#f0883e", INHERITS:"#d2a8ff", CONTAINS:"rgba(139,148,158,0.15)", IMPLEMENTS:"#f9e2af", TESTED_BY:"#f38ba8", DEPENDS_ON:"#fab387" };
+var communityColorScale = d3.scaleOrdinal(d3.schemeTableau10);
+var communityColoringOn = false;
+function escH(s) { return !s ? "" : s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/`/g,"&#96;"); }
+function displayName(d) {
+  if (d.kind === "File") {
+    var fp = d.file_path || d.qualified_name || d.name;
+    var parts = fp.replace(/\\/g, "/").split("/");
+    var fname = parts.pop();
+    var parent = parts.pop() || "";
+    return parent ? parent + "/" + fname : fname;
+  }
+  return d.name;
+}
+var nodes = graphData.nodes.map(function(d) { var o = Object.assign({}, d); o._id = d.qualified_name; o.label = displayName(d); return o; });
+var edges = graphData.edges.map(function(d) { var o = Object.assign({}, d); o._source = d.source; o._target = d.target; return o; });
+var stats = graphData.stats;
+var flows = graphData.flows || [];
+var communities = graphData.communities || [];
+var nodeById = new Map(nodes.map(function(n) { return [n.qualified_name, n]; }));
+var hiddenEdgeKinds = new Set();
+var hiddenNodeKinds = new Set();
+var collapsedFiles = new Set();
+var containsChildren = new Map();
+var childToParent = new Map();
+edges.forEach(function(e) {
+  if (e.kind === "CONTAINS") {
+    if (!containsChildren.has(e._source)) containsChildren.set(e._source, new Set());
+    containsChildren.get(e._source).add(e._target);
+    childToParent.set(e._target, e._source);
+  }
+});
+function allDescendants(qn) {
+  var result = new Set();
+  var stack = [qn];
+  while (stack.length) {
+    var cur = stack.pop();
+    var children = containsChildren.get(cur);
+    if (!children) continue;
+    children.forEach(function(c) { if (!result.has(c)) { result.add(c); stack.push(c); } });
+  }
+  return result;
+}
+var nodeToCommunity = new Map();
+communities.forEach(function(c) {
+  (c.members || []).forEach(function(qn) {
+    nodeToCommunity.set(qn, c.id);
+  });
+});
+// Compute node degree (connection count) for size scaling
+var nodeDegree = new Map();
+edges.forEach(function(e) {
+  var s = e._source, t = e._target;
+  nodeDegree.set(s, (nodeDegree.get(s) || 0) + 1);
+  nodeDegree.set(t, (nodeDegree.get(t) || 0) + 1);
+});
+var maxDegree = 1;
+nodeDegree.forEach(function(v) {
+  if (v > maxDegree) maxDegree = v;
+});
+function degreeRadius(d) {
+  var base = KIND_RADIUS[d.kind] || 6;
+  var deg = nodeDegree.get(d.qualified_name) || 0;
+  // Scale: base + up to 2x base proportional to degree
+  var scale = 1 + (deg / maxDegree);
+  return Math.round(base * scale);
+}
+var nodeIdToQn = new Map();
+nodes.forEach(function(n) { nodeIdToQn.set(n.id, n.qualified_name); });
+var flowSelect = document.getElementById("flow-select");
+flows.forEach(function(f, i) {
+  var opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = f.name + " (" + f.node_count + " nodes)";
+  flowSelect.appendChild(opt);
+});
+var statsBar = document.getElementById("stats-bar");
+var langList = (stats.languages || []).join(", ") || "n/a";
+function si(l, v) { return '<div class="stat-item"><span class="tt-label">' + escH(l) + '</span> <span class="stat-value">' + escH(String(v)) + '</span></div>'; }
+statsBar.textContent = "";
+statsBar.insertAdjacentHTML("beforeend", si("Nodes", stats.total_nodes) + si("Edges", stats.total_edges) + si("Files", stats.files_count) + si("Languages", langList));
+var tooltip = document.getElementById("tooltip");
+function showTooltip(ev, d) {
+  var bg = communityColoringOn && d.community_id != null ? communityColorScale(d.community_id) : (KIND_COLOR[d.kind] || "#555");
+  var relFile = d.file_path ? d.file_path.split("/").slice(-3).join("/") : "";
+  var h = '<span class="tt-name">' + escH(d.label) + '</span>';
+  h += '<span class="tt-kind" style="background:' + bg + ';color:#0d1117">' + escH(d.kind) + '</span>';
+  if (relFile) h += '<div class="tt-row tt-file">' + escH(relFile) + '</div>';
+  if (d.line_start != null) h += '<div class="tt-row"><span class="tt-label">Lines: </span>' + d.line_start + ' \u2013 ' + (d.line_end || d.line_start) + '</div>';
+  if (d.params) h += '<div class="tt-row"><span class="tt-label">Params: </span>' + escH(d.params) + '</div>';
+  if (d.return_type) h += '<div class="tt-row"><span class="tt-label">Returns: </span>' + escH(d.return_type) + '</div>';
+  if (d.community_id != null) {
+    var comm = communities.find(function(c) { return c.id === d.community_id; });
+    if (comm) h += '<div class="tt-row"><span class="tt-label">Community: </span>' + escH(comm.name) + '</div>';
+  }
+  tooltip.textContent = "";
+  tooltip.insertAdjacentHTML("beforeend", h);
+  tooltip.classList.add("visible");
+  moveTooltip(ev);
+}
+function moveTooltip(ev) {
+  var p = 14;
+  var x = ev.pageX + p, y = ev.pageY + p;
+  var r = tooltip.getBoundingClientRect();
+  if (x + r.width > innerWidth - p) x = ev.pageX - r.width - p;
+  if (y + r.height > innerHeight - p) y = ev.pageY - r.height - p;
+  tooltip.style.left = x + "px"; tooltip.style.top = y + "px";
+}
+function hideTooltip() { tooltip.classList.remove("visible"); }
+var W = innerWidth, H = innerHeight;
+var svg = d3.select("svg").attr("viewBox", [0, 0, W, H]);
+var gRoot = svg.append("g");
+var currentTransform = d3.zoomIdentity;
+var zoomBehavior = d3.zoom()
+  .scaleExtent([0.05, 8])
+  .on("zoom", function(ev) { currentTransform = ev.transform; gRoot.attr("transform", ev.transform); updateLabelVisibility(); });
+svg.call(zoomBehavior);
+var defs = svg.append("defs");
+var glow = defs.append("filter").attr("id","glow").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%");
+glow.append("feGaussianBlur").attr("stdDeviation","3").attr("result","blur");
+glow.append("feComposite").attr("in","SourceGraphic").attr("in2","blur").attr("operator","over");
+[{id:"arrow-calls",color:"#3fb950"},{id:"arrow-imports",color:"#f0883e"},{id:"arrow-inherits",color:"#d2a8ff"},{id:"arrow-implements",color:"#f9e2af"},{id:"arrow-tested_by",color:"#f38ba8"},{id:"arrow-depends_on",color:"#fab387"}].forEach(function(mk) {
+  defs.append("marker").attr("id", mk.id)
+    .attr("viewBox","0 -5 10 10").attr("refX",28).attr("refY",0)
+    .attr("markerWidth",8).attr("markerHeight",8).attr("orient","auto")
+    .append("path").attr("d","M0,-4L10,0L0,4Z").attr("fill",mk.color);
+});
+var N = nodes.length;
+var isLarge = N > 300;
+var simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(edges).id(function(d) { return d.qualified_name; })
+    .distance(function(d) { return d.kind === "CONTAINS" ? 35 : (isLarge ? 80 : 120); })
+    .strength(function(d) { return d.kind === "CONTAINS" ? 1.5 : 0.15; }))
+  .force("charge", d3.forceManyBody().strength(function(d) { return d.kind === "File" ? (isLarge ? -200 : -400) : (isLarge ? -60 : -120); }).theta(0.85).distanceMax(600))
+  .force("collide", d3.forceCollide().radius(function(d) { return degreeRadius(d) + 4; }))
+  .force("center", d3.forceCenter(W / 2, H / 2))
+  .force("x", d3.forceX(W / 2).strength(0.03))
+  .force("y", d3.forceY(H / 2).strength(0.03))
+  .alphaDecay(isLarge ? 0.04 : 0.025)
+  .velocityDecay(0.4);
+var EDGE_CFG = {
+  CONTAINS:     { dash:null, width:1, opacity:0.14, marker:"" },
+  CALLS:        { dash:null, width:2, opacity:0.7, marker:"url(#arrow-calls)" },
+  IMPORTS_FROM: { dash:"8,4", width:2, opacity:0.65, marker:"url(#arrow-imports)" },
+  INHERITS:     { dash:"2,6", width:2.5, opacity:0.7, marker:"url(#arrow-inherits)" },
+  IMPLEMENTS:   { dash:"4,3", width:1.5, opacity:0.65, marker:"url(#arrow-implements)" },
+  TESTED_BY:    { dash:"2,4", width:1.5, opacity:0.6, marker:"url(#arrow-tested_by)" },
+  DEPENDS_ON:   { dash:"8,4", width:1, opacity:0.6, marker:"url(#arrow-depends_on)" },
+};
+function eStyle(d) { return EDGE_CFG[d.kind] || {dash:null,width:1,opacity:0.3,marker:""}; }
+function eColor(d) { return EDGE_COLOR[d.kind] || "#484f58"; }
+function nodeColor(d) {
+  if (communityColoringOn && d.community_id != null) return communityColorScale(d.community_id);
+  return KIND_COLOR[d.kind] || "#8b949e";
+}
+var linkGroup  = gRoot.append("g").attr("class","links");
+var nodeGroup  = gRoot.append("g").attr("class","nodes");
+var labelGroup = gRoot.append("g").attr("class","labels");
+var linkSel, labelSel;
+var showLabels = true;
+function updateLinks() {
+  var vis = new Set(nodes.filter(function(n) { return !n._hidden; }).map(function(n) { return n.qualified_name; }));
+  var visEdges = edges.filter(function(e) {
+    if (hiddenEdgeKinds.has(e.kind)) return false;
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    return vis.has(s) && vis.has(t);
+  });
+  linkSel = linkGroup.selectAll("line").data(visEdges, function(d) { return d._source+"->"+d._target+":"+d.kind; });
+  linkSel.exit().remove();
+  var enter = linkSel.enter().append("line");
+  linkSel = enter.merge(linkSel);
+  linkSel
+    .attr("stroke", function(d) { return eColor(d); })
+    .attr("stroke-width", function(d) { return eStyle(d).width; })
+    .attr("stroke-dasharray", function(d) { return eStyle(d).dash; })
+    .attr("opacity", function(d) { return eStyle(d).opacity; })
+    .attr("marker-end", function(d) { return eStyle(d).marker; });
+}
+function updateNodes() {
+  var hiddenSet = new Set();
+  collapsedFiles.forEach(function(fqn) { allDescendants(fqn).forEach(function(c) { hiddenSet.add(c); }); });
+  nodes.forEach(function(n) { n._hidden = hiddenSet.has(n.qualified_name) || hiddenNodeKinds.has(n.kind); });
+  var vis = nodes.filter(function(n) { return !n._hidden; });
+  var nodeSel = nodeGroup.selectAll("g.node-g").data(vis, function(d) { return d.qualified_name; });
+  nodeSel.exit().remove();
+  var enter = nodeSel.enter().append("g").attr("class","node-g");
+  enter.filter(function(d) { return d.kind === "File"; }).append("circle")
+    .attr("class","glow-ring")
+    .attr("r", function(d) { return degreeRadius(d) + 5; })
+    .attr("fill","none")
+    .attr("stroke", function(d) { return nodeColor(d); })
+    .attr("stroke-width", 1.5).attr("opacity", 0.3).attr("filter","url(#glow)");
+  enter.append("path").attr("class","node-shape")
+    .attr("d", function(d) { return d3.symbol().type(KIND_SHAPE[d.kind] || d3.symbolCircle).size(KIND_AREA[d.kind] || 113)(); })
+    .attr("fill", function(d) { return nodeColor(d); })
+    .attr("stroke", function(d) { return d.kind === "File" ? "rgba(88,166,255,0.3)" : "rgba(255,255,255,0.08)"; })
+    .attr("stroke-width", function(d) { return d.kind === "File" ? 2 : 1; })
+    .attr("cursor", "pointer");
+  enter
+    .on("mouseover", function(ev, d) { highlightConnected(d, true); showTooltip(ev, d); })
+    .on("mousemove", function(ev) { moveTooltip(ev); })
+    .on("mouseout",  function(ev, d) { highlightConnected(d, false); hideTooltip(); })
+    .on("click", function(ev, d) {
+      ev.stopPropagation();
+      if (d.kind === "File" && !ev.shiftKey) toggleCollapse(d.qualified_name);
+      showDetailPanel(d);
+    })
+    .call(d3.drag().on("start", dragS).on("drag", dragD).on("end", dragE));
+  enter.attr("tabindex", 0).attr("role", "button")
+    .attr("aria-label", function(d) { return d.kind + ": " + d.label; })
+    .on("keydown", function(ev, d) {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        if (d.kind === "File" && !ev.shiftKey) toggleCollapse(d.qualified_name);
+        showDetailPanel(d);
+      } else if (ev.key === "Escape") {
+        ev.preventDefault();
+        detailPanel.classList.remove("visible");
+        hideTooltip();
+      } else if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(ev.key) !== -1) {
+        ev.preventDefault();
+        var vis = nodes.filter(function(n) { return !n._hidden; });
+        var best = null, bestDist = Infinity;
+        vis.forEach(function(n) {
+          if (n.qualified_name === d.qualified_name) return;
+          var dx = n.x - d.x, dy = n.y - d.y;
+          var dist = Math.sqrt(dx*dx + dy*dy);
+          var ok = false;
+          if (ev.key === "ArrowRight" && dx > 0 && Math.abs(dy) < Math.abs(dx)) ok = true;
+          if (ev.key === "ArrowLeft"  && dx < 0 && Math.abs(dy) < Math.abs(dx)) ok = true;
+          if (ev.key === "ArrowDown"  && dy > 0 && Math.abs(dx) < Math.abs(dy)) ok = true;
+          if (ev.key === "ArrowUp"    && dy < 0 && Math.abs(dx) < Math.abs(dy)) ok = true;
+          if (ok && dist < bestDist) { best = n; bestDist = dist; }
+        });
+        if (best) {
+          var target = nodeGroup.selectAll("g.node-g").filter(function(n) { return n.qualified_name === best.qualified_name; }).node();
+          if (target) target.focus();
+        }
+      }
+    })
+    .on("focus", function(ev, d) { highlightConnected(d, true); showTooltip(ev, d); })
+    .on("blur",  function(ev, d) { highlightConnected(d, false); hideTooltip(); });
+  nodeSel = enter.merge(nodeSel);
+  labelSel = labelGroup.selectAll("text.node-label").data(vis, function(d) { return d.qualified_name; });
+  labelSel.exit().remove();
+  var lEnter = labelSel.enter().append("text").attr("class","node-label")
+    .attr("text-anchor","start").attr("dy","0.35em")
+    .text(function(d) { return d.label; })
+    .attr("fill", function(d) { return d.kind === "File" ? "#e6edf3" : d.kind === "Class" ? "#f0883e" : "#9eaab6"; })
+    .attr("font-size", function(d) { return d.kind === "File" ? "12px" : d.kind === "Class" ? "11px" : "10px"; })
+    .attr("font-weight", function(d) { return d.kind === "File" ? 700 : d.kind === "Class" ? 600 : 400; });
+  labelSel = lEnter.merge(labelSel);
+  updateLinks();
+  updateLabelVisibility();
+}
+function updateLabelVisibility() {
+  if (!labelSel) return;
+  var s = currentTransform.k;
+  labelSel.attr("display", function(d) {
+    if (!showLabels) return "none";
+    if (d.kind === "File") return null;
+    if (d.kind === "Class") return s > 0.5 ? null : "none";
+    return s > 1.0 ? null : "none";
+  });
+}
+function highlightConnected(d, on) {
+  if (on) {
+    var connected = new Set([d.qualified_name]);
+    edges.forEach(function(e) {
+      var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+      var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+      if (s === d.qualified_name) connected.add(t);
+      if (t === d.qualified_name) connected.add(s);
+    });
+    nodeGroup.selectAll("g.node-g").select(".node-shape")
+      .transition().duration(150).attr("opacity", function(n) { return connected.has(n.qualified_name) ? 1 : 0.15; });
+    linkSel.transition().duration(150)
+      .attr("opacity", function(e) {
+        var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+        var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+        return (s === d.qualified_name || t === d.qualified_name) ? 0.9 : 0.03;
+      })
+      .attr("stroke-width", function(e) {
+        var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+        var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+        return (s === d.qualified_name || t === d.qualified_name) ? 2.5 : eStyle(e).width;
+      });
+    labelSel.transition().duration(150).attr("opacity", function(n) { return connected.has(n.qualified_name) ? 1 : 0.1; });
+  } else {
+    nodeGroup.selectAll("g.node-g").select(".node-shape").transition().duration(300).attr("opacity", 1);
+    linkSel.transition().duration(300)
+      .attr("opacity", function(e) { return eStyle(e).opacity; })
+      .attr("stroke-width", function(e) { return eStyle(e).width; });
+    labelSel.transition().duration(300).attr("opacity", 1);
+    updateLabelVisibility();
+  }
+}
+function toggleCollapse(qn) {
+  if (collapsedFiles.has(qn)) collapsedFiles.delete(qn); else collapsedFiles.add(qn);
+  nodeGroup.selectAll("g.node-g").select(".glow-ring")
+    .attr("stroke-dasharray", function(d) { return collapsedFiles.has(d.qualified_name) ? "4,3" : null; })
+    .attr("opacity", function(d) { return collapsedFiles.has(d.qualified_name) ? 0.6 : 0.3; });
+  updateNodes();
+  simulation.alpha(0.3).restart();
+}
+function dragS(ev, d) { if (!ev.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; }
+function dragD(ev, d) { d.fx = ev.x; d.fy = ev.y; }
+function dragE(ev, d) { if (!ev.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+simulation.on("tick", function() {
+  if (linkSel) linkSel
+    .attr("x1", function(d) { return d.source.x; }).attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; }).attr("y2", function(d) { return d.target.y; });
+  nodeGroup.selectAll("g.node-g").attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  if (labelSel) labelSel
+    .attr("x", function(d) { return d.x + degreeRadius(d) + 5; })
+    .attr("y", function(d) { return d.y; });
+});
+// Only auto-collapse File nodes on very large graphs, otherwise all edges
+// become invisible because they connect to Functions/Classes that are now
+// hidden beneath collapsed Files. See: #132
+if (N > 2000) {
+  nodes.forEach(function(n) { if (n.kind === "File") collapsedFiles.add(n.qualified_name); });
+}
+updateNodes();
+function fitGraph() {
+  var b = gRoot.node().getBBox();
+  if (b.width === 0 || b.height === 0) return;
+  var pad = 0.1;
+  var fw = b.width * (1 + 2*pad), fh = b.height * (1 + 2*pad);
+  var s = Math.min(W / fw, H / fh, 2.5);
+  var tx = W/2 - (b.x + b.width/2)*s, ty = H/2 - (b.y + b.height/2)*s;
+  svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+}
+var loadingOverlay = document.getElementById("loading-overlay");
+var emptyState = document.getElementById("empty-state");
+if (nodes.length === 0) {
+  loadingOverlay.classList.add("hidden");
+  emptyState.classList.add("visible");
+}
+simulation.on("end", function() {
+  loadingOverlay.classList.add("hidden");
+  fitGraph();
+});
+function zoomToNode(qn) {
+  var nd = nodeById.get(qn);
+  if (!nd || nd.x == null) return;
+  var s = 2.0;
+  var tx = W/2 - nd.x*s, ty = H/2 - nd.y*s;
+  svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+}
+document.getElementById("btn-fit").addEventListener("click", fitGraph);
+document.getElementById("btn-labels").addEventListener("click", function() {
+  showLabels = !showLabels;
+  this.classList.toggle("active");
+  this.setAttribute("aria-pressed", showLabels);
+  updateLabelVisibility();
+});
+document.querySelectorAll(".legend-item[data-edge-kind]").forEach(function(el) {
+  el.addEventListener("click", function() {
+    var kind = this.dataset.edgeKind;
+    if (hiddenEdgeKinds.has(kind)) { hiddenEdgeKinds.delete(kind); this.classList.remove("dimmed"); }
+    else { hiddenEdgeKinds.add(kind); this.classList.add("dimmed"); }
+    this.setAttribute("aria-pressed", !hiddenEdgeKinds.has(kind));
+    updateLinks();
+  });
+});
+document.querySelectorAll("#filter-panel input[data-kind]").forEach(function(el) {
+  el.addEventListener("change", function() {
+    var kind = this.dataset.kind;
+    if (this.checked) hiddenNodeKinds.delete(kind); else hiddenNodeKinds.add(kind);
+    updateNodes();
+    simulation.alpha(0.15).restart();
+  });
+});
+document.getElementById("btn-community").addEventListener("click", function() {
+  communityColoringOn = !communityColoringOn;
+  this.classList.toggle("active");
+  this.setAttribute("aria-pressed", communityColoringOn);
+  nodeGroup.selectAll("g.node-g").select(".node-shape").transition().duration(300)
+    .attr("fill", function(d) { return nodeColor(d); });
+  nodeGroup.selectAll("g.node-g").select(".glow-ring")
+    .transition().duration(300)
+    .attr("stroke", function(d) { return nodeColor(d); });
+  // Toggle community legend visibility with coloring
+  var cl = document.getElementById("community-legend");
+  if (communityColoringOn) cl.classList.add("visible");
+  else cl.classList.remove("visible");
+});
+// Build community legend with toggle checkboxes
+var hiddenCommunities = new Set();
+(function buildCommunityLegend() {
+  var cl = document.getElementById("community-legend");
+  if (!communities.length) return;
+  var h = '<h3>Communities</h3>';
+  communities.slice(0, 30).forEach(function(c) {
+    var col = communityColorScale(c.id);
+    var nm = escH(c.name || ("Community " + c.id));
+    h += '<label class="cl-item">'
+      + '<input type="checkbox" data-cid="'
+      + c.id + '" checked>'
+      + '<span class="cl-swatch" style="background:'
+      + col + '"></span> ' + nm + '</label>';
+  });
+  cl.textContent = "";
+  cl.insertAdjacentHTML("beforeend", h);
+  cl.querySelectorAll("input[data-cid]").forEach(
+    function(el) {
+      el.addEventListener("change", function() {
+        var cid = parseInt(this.dataset.cid);
+        if (this.checked) hiddenCommunities.delete(cid);
+        else hiddenCommunities.add(cid);
+        applyCommunityFilter();
+      });
+    }
+  );
+})();
+function applyCommunityFilter() {
+  if (!communityColoringOn || !hiddenCommunities.size) {
+    nodeGroup.selectAll("g.node-g")
+      .attr("display", function(d) {
+        return d._hidden ? "none" : null;
+      });
+    updateLinks();
+    return;
+  }
+  nodeGroup.selectAll("g.node-g")
+    .attr("display", function(d) {
+      if (d._hidden) return "none";
+      var cid = d.community_id;
+      if (cid == null) {
+        cid = nodeToCommunity.get(d.qualified_name);
+      }
+      if (cid != null && hiddenCommunities.has(cid)) {
+        return "none";
+      }
+      return null;
+    });
+  if (labelSel) labelSel
+    .attr("display", function(d) {
+      var cid = d.community_id;
+      if (cid == null) {
+        cid = nodeToCommunity.get(d.qualified_name);
+      }
+      if (cid != null && hiddenCommunities.has(cid)) {
+        return "none";
+      }
+      return null;
+    });
+  updateLinks();
+}
+var activeFlowQns = null;
+flowSelect.addEventListener("change", function() {
+  var idx = this.value;
+  if (idx === "") { activeFlowQns = null; clearFlowHighlight(); return; }
+  var flow = flows[parseInt(idx)];
+  if (!flow) return;
+  var pathQns = new Set();
+  (flow.path || []).forEach(function(nid) { var qn = nodeIdToQn.get(nid); if (qn) pathQns.add(qn); });
+  activeFlowQns = pathQns;
+  applyFlowHighlight();
+});
+function applyFlowHighlight() {
+  if (!activeFlowQns || activeFlowQns.size === 0) { clearFlowHighlight(); return; }
+  nodeGroup.selectAll("g.node-g").select(".node-shape").transition().duration(200)
+    .attr("opacity", function(d) { return activeFlowQns.has(d.qualified_name) ? 1 : 0.2; });
+  if (labelSel) labelSel.transition().duration(200)
+    .attr("opacity", function(d) { return activeFlowQns.has(d.qualified_name) ? 1 : 0.1; });
+  if (linkSel) linkSel.transition().duration(200)
+    .attr("opacity", function(e) {
+      var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+      var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+      return (activeFlowQns.has(s) && activeFlowQns.has(t)) ? 0.9 : 0.03;
+    });
+}
+function clearFlowHighlight() {
+  nodeGroup.selectAll("g.node-g").select(".node-shape").transition().duration(300).attr("opacity", 1);
+  if (linkSel) linkSel.transition().duration(300).attr("opacity", function(e) { return eStyle(e).opacity; });
+  if (labelSel) labelSel.transition().duration(300).attr("opacity", 1);
+  updateLabelVisibility();
+}
+var detailPanel = document.getElementById("detail-panel");
+var dpContent = document.getElementById("dp-content");
+var detailTrigger = null;
+document.querySelector("#detail-panel .dp-close").addEventListener("click", function() {
+  detailPanel.classList.remove("visible");
+  document.getElementById("legend").style.display = "";
+  if (detailTrigger) detailTrigger.focus();
+});
+svg.on("click", function() {
+  detailPanel.classList.remove("visible");
+  document.getElementById("legend").style.display = "";
+  if (detailTrigger) detailTrigger.focus();
+});
+function showDetailPanel(d) {
+  detailTrigger = document.activeElement;
+  var callers = [], callees = [];
+  edges.forEach(function(e) {
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    if (t === d.qualified_name && e.kind === "CALLS") { var sN = nodeById.get(s); if (sN) callers.push(sN); }
+    if (s === d.qualified_name && e.kind === "CALLS") { var tN = nodeById.get(t); if (tN) callees.push(tN); }
+  });
+  var relFile = d.file_path ? d.file_path.split("/").slice(-3).join("/") : "";
+  var bg = communityColoringOn && d.community_id != null ? communityColorScale(d.community_id) : (KIND_COLOR[d.kind] || "#555");
+  var h = '<h2>' + escH(d.label) + '</h2>';
+  h += '<span class="tt-kind" style="background:' + bg + ';color:#0d1117">' + escH(d.kind) + '</span>';
+  if (relFile) h += '<div class="dp-meta" style="margin-top:8px">' + escH(relFile) + (d.line_start != null ? ':' + d.line_start : '') + '</div>';
+  if (d.params) h += '<div class="dp-meta"><span class="tt-label">Params:</span> ' + escH(d.params) + '</div>';
+  if (d.return_type) h += '<div class="dp-meta"><span class="tt-label">Returns:</span> ' + escH(d.return_type) + '</div>';
+  if (d.community_id != null) {
+    var comm = communities.find(function(c) { return c.id === d.community_id; });
+    if (comm) h += '<div class="dp-meta"><span class="tt-label">Community:</span> ' + escH(comm.name) + '</div>';
+  }
+  if (callers.length) {
+    h += '<div class="dp-section"><h4>Callers (' + callers.length + ')</h4><ul class="dp-list">';
+    callers.slice(0, 20).forEach(function(c) { h += '<li data-qn="' + escH(c.qualified_name) + '">' + escH(c.label) + '</li>'; });
+    h += '</ul></div>';
+  }
+  if (callees.length) {
+    h += '<div class="dp-section"><h4>Callees (' + callees.length + ')</h4><ul class="dp-list">';
+    callees.slice(0, 20).forEach(function(c) { h += '<li data-qn="' + escH(c.qualified_name) + '">' + escH(c.label) + '</li>'; });
+    h += '</ul></div>';
+  }
+  dpContent.textContent = "";
+  dpContent.insertAdjacentHTML("beforeend", h);
+  detailPanel.classList.add("visible");
+  document.getElementById("legend").style.display = "none";
+  detailPanel.querySelector(".dp-close").focus();
+  dpContent.querySelectorAll("li[data-qn]").forEach(function(li) {
+    li.addEventListener("click", function() {
+      var qn = li.dataset.qn;
+      zoomToNode(qn);
+      var nd = nodeById.get(qn);
+      if (nd) showDetailPanel(nd);
+    });
+  });
+}
+var searchInput = document.getElementById("search");
+var searchResults = document.getElementById("search-results");
+var searchTerm = "";
+searchInput.addEventListener("input", function() {
+  searchTerm = this.value.trim().toLowerCase();
+  applySearchFilter();
+  showSearchResults();
+});
+searchInput.addEventListener("focus", showSearchResults);
+searchInput.addEventListener("keydown", function(ev) {
+  var items = searchResults.querySelectorAll(".sr-item");
+  if (!items.length) return;
+  var active = searchResults.querySelector(".sr-item.sr-active");
+  var idx = active ? Array.from(items).indexOf(active) : -1;
+  if (ev.key === "ArrowDown") {
+    ev.preventDefault();
+    if (active) active.classList.remove("sr-active");
+    idx = (idx + 1) % items.length;
+    items[idx].classList.add("sr-active");
+    items[idx].scrollIntoView({ block: "nearest" });
+    searchInput.setAttribute("aria-activedescendant", items[idx].id);
+  } else if (ev.key === "ArrowUp") {
+    ev.preventDefault();
+    if (active) active.classList.remove("sr-active");
+    idx = idx <= 0 ? items.length - 1 : idx - 1;
+    items[idx].classList.add("sr-active");
+    items[idx].scrollIntoView({ block: "nearest" });
+    searchInput.setAttribute("aria-activedescendant", items[idx].id);
+  } else if (ev.key === "Enter" && active) {
+    ev.preventDefault();
+    active.click();
+  }
+});
+document.addEventListener("click", function(ev) {
+  if (!searchResults.contains(ev.target) && ev.target !== searchInput) searchResults.style.display = "none";
+});
+function showSearchResults() {
+  if (!searchTerm) { searchResults.style.display = "none"; searchInput.setAttribute("aria-expanded", "false"); return; }
+  var matched = [];
+  nodes.forEach(function(n) {
+    if (n._hidden) return;
+    var hay = (n.label + " " + n.qualified_name).toLowerCase();
+    if (hay.indexOf(searchTerm) !== -1) matched.push(n);
+  });
+  if (!matched.length) { searchResults.style.display = "none"; searchInput.setAttribute("aria-expanded", "false"); return; }
+  searchResults.textContent = "";
+  matched.slice(0, 15).forEach(function(n, i) {
+    var bg = KIND_COLOR[n.kind] || "#555";
+    var div = document.createElement("div");
+    div.className = "sr-item";
+    div.setAttribute("role", "option");
+    div.setAttribute("tabindex", "-1");
+    div.id = "sr-" + i;
+    var kindSpan = document.createElement("span");
+    kindSpan.className = "sr-kind";
+    kindSpan.style.background = bg;
+    kindSpan.style.color = "#0d1117";
+    kindSpan.textContent = n.kind;
+    div.appendChild(kindSpan);
+    div.appendChild(document.createTextNode(" " + n.label));
+    div.addEventListener("click", function() {
+      zoomToNode(n.qualified_name);
+      showDetailPanel(n);
+      searchResults.style.display = "none";
+    });
+    searchResults.appendChild(div);
+  });
+  searchResults.style.display = "block";
+  searchInput.setAttribute("aria-expanded", "true");
+}
+function applySearchFilter() {
+  if (!searchTerm) {
+    nodeGroup.selectAll("g.node-g").select(".node-shape").attr("opacity", 1);
+    if (labelSel) labelSel.attr("opacity", 1);
+    if (linkSel) linkSel.attr("opacity", function(e) { return eStyle(e).opacity; });
+    updateLabelVisibility();
+    return;
+  }
+  var matched = new Set();
+  nodes.forEach(function(n) {
+    if (n._hidden) return;
+    var hay = (n.label + " " + n.qualified_name).toLowerCase();
+    if (hay.indexOf(searchTerm) !== -1) matched.add(n.qualified_name);
+  });
+  nodeGroup.selectAll("g.node-g").select(".node-shape")
+    .attr("opacity", function(d) { return matched.has(d.qualified_name) ? 1 : 0.08; });
+  if (labelSel) labelSel
+    .attr("opacity", function(d) { return matched.has(d.qualified_name) ? 1 : 0.05; })
+    .attr("display", function(d) { return matched.has(d.qualified_name) ? null : "none"; });
+  if (linkSel) linkSel.attr("opacity", function(e) {
+    var s = typeof e.source === "object" ? e.source.qualified_name : e._source;
+    var t = typeof e.target === "object" ? e.target.qualified_name : e._target;
+    return (matched.has(s) || matched.has(t)) ? eStyle(e).opacity : 0.02;
+  });
+}
+var helpOverlay = document.getElementById("help-overlay");
+function toggleHelp() {
+  helpOverlay.classList.toggle("hidden");
+  if (!helpOverlay.classList.contains("hidden")) {
+    helpOverlay.querySelector(".help-close").focus();
+  }
+}
+document.getElementById("btn-help").addEventListener("click", toggleHelp);
+helpOverlay.querySelector(".help-close").addEventListener("click", toggleHelp);
+helpOverlay.addEventListener("click", function(ev) {
+  if (ev.target === helpOverlay) toggleHelp();
+});
+document.addEventListener("keydown", function(ev) {
+  var tag = (ev.target.tagName || "").toLowerCase();
+  var inInput = tag === "input" || tag === "textarea" || tag === "select" || ev.target.isContentEditable;
+  if (ev.key === "Escape") {
+    if (detailPanel.classList.contains("visible")) {
+      detailPanel.classList.remove("visible");
+      if (detailTrigger) detailTrigger.focus();
+    } else if (searchResults.style.display === "block") {
+      searchResults.style.display = "none";
+      searchInput.focus();
+    } else if (!helpOverlay.classList.contains("hidden")) {
+      toggleHelp();
+    }
+    return;
+  }
+  if (inInput) return;
+  if (ev.key === "/") {
+    ev.preventDefault();
+    searchInput.focus();
+  } else if (ev.key === "?") {
+    ev.preventDefault();
+    toggleHelp();
+  }
+});
+</script>
+</body>
+</html>
