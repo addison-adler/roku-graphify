@@ -1,10 +1,11 @@
 # Community 12
 
-> 1 nodes
+> 2 nodes
 
 ## Key Concepts
 
-- **Init** (0 connections)
+- **changeRotationDirection** (4 connections)
+- **clockwise (bool)** (2 connections)
 
 ## Relationships
 
@@ -12,7 +13,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 5 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

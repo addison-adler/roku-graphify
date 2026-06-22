@@ -1,10 +1,11 @@
 # Community 13
 
-> 1 nodes
+> 2 nodes
 
 ## Key Concepts
 
-- **OnBackgroundLoaded** (0 connections)
+- **onImageHeightChange** (5 connections)
+- **imageHeight (float)** (2 connections)
 
 ## Relationships
 
@@ -12,7 +13,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

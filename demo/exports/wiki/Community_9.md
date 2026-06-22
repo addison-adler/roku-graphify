@@ -1,12 +1,13 @@
 # Community 9
 
-> 3 nodes
+> 4 nodes
 
 ## Key Concepts
 
-- **init** (2 connections)
-- **OnRowItemSelected** (1 connections)
-- **onKeyEvent** (1 connections)
+- **customItem** (3 connections)
+- **height (float)** (1 connections)
+- **itemContent (node)** (1 connections)
+- **width (float)** (1 connections)
 
 ## Relationships
 
@@ -14,7 +15,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

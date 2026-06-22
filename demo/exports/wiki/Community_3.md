@@ -1,19 +1,20 @@
 # Community 3
 
-> 10 nodes
+> 11 nodes
 
 ## Key Concepts
 
-- **init** (6 connections)
-- **createObject** (5 connections)
-- **Parser** (3 connections)
-- **init** (2 connections)
-- **response (assocarray)** (1 connections)
-- **AddAndSetFields** (1 connections)
-- **createGrid** (1 connections)
-- **createRow** (1 connections)
-- **select** (1 connections)
-- **roXMLElement** (1 connections)
+- **LoadingIndicator** (39 connections)
+- **onTextChange** (4 connections)
+- **text (string)** (2 connections)
+- **backgroundColor (color)** (1 connections)
+- **fadeInterval (time)** (1 connections)
+- **font (node)** (1 connections)
+- **imageUri (string)** (1 connections)
+- **spacing (float)** (1 connections)
+- **spinInterval (time)** (1 connections)
+- **state (string)** (1 connections)
+- **textColor (color)** (1 connections)
 
 ## Relationships
 
@@ -21,7 +22,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 22 (100%)
+- EXTRACTED: 52 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

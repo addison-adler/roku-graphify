@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **OnFocusedChildChange** (0 connections)
+- **init** (0 connections)
 
 ## Relationships
 

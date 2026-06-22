@@ -4,18 +4,18 @@
 
 ## Key Concepts
 
-- **HeroScreen** (8 connections)
-- **Init** (5 connections)
-- **FadingBackground** (3 connections)
-- **ShadeOpacity (float)** (1 connections)
-- **uri (string)** (1 connections)
-- **content (node)** (1 connections)
-- **focusedContent (node)** (1 connections)
-- **itemFocused (intarray)** (1 connections)
-- **numBadRequests (integer)** (1 connections)
-- **rowItemSelected (intarray)** (1 connections)
-- **OnItemFocused** (1 connections)
-- **makeRequest** (1 connections)
+- **DetailsScreen** (13 connections)
+- **ContentList2SimpleNode** (4 connections)
+- **OnContentChange** (4 connections)
+- **onItemSelected** (4 connections)
+- **onVideoVisibleChange** (4 connections)
+- **OnFocusedChildChange** (3 connections)
+- **OnVideoPlayerStateChange** (3 connections)
+- **onVisibleChange** (3 connections)
+- **content (node)** (2 connections)
+- **itemSelected (integer)** (2 connections)
+- **videoPlayerVisible (bool)** (2 connections)
+- **Init** (2 connections)
 
 ## Relationships
 
@@ -23,7 +23,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 25 (100%)
+- EXTRACTED: 39 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

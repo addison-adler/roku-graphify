@@ -4,13 +4,13 @@
 
 ## Key Concepts
 
-- **Description** (7 connections)
-- **Content (node)** (1 connections)
-- **Description (node)** (1 connections)
-- **ReleaseDate (node)** (1 connections)
-- **StarRating (node)** (1 connections)
-- **Title (node)** (1 connections)
-- **UserStarRating (node)** (1 connections)
+- **FadingBackground** (7 connections)
+- **OnBackgroundUriChange** (4 connections)
+- **Init** (3 connections)
+- **OnBackgroundLoaded** (3 connections)
+- **OnSizeChange** (3 connections)
+- **uri (string)** (2 connections)
+- **ShadeOpacity (float)** (1 connections)
 
 ## Relationships
 
@@ -18,7 +18,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 13 (100%)
+- EXTRACTED: 19 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

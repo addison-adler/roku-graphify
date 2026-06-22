@@ -1,10 +1,11 @@
 # Community 14
 
-> 1 nodes
+> 2 nodes
 
 ## Key Concepts
 
-- **OnBackgroundUriChange** (0 connections)
+- **onImageWidthChange** (5 connections)
+- **imageWidth (float)** (2 connections)
 
 ## Relationships
 
@@ -12,7 +13,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
